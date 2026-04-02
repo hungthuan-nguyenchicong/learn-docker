@@ -8,6 +8,12 @@
 			"name": "PROJECT APP",
 			"path": "."
 		},
+		{
+			"name": "PROJECT PACKAGES",
+			"path": "./laravel-app/vendor/ncc/packages"
+		},
 	],
-	"settings": {}
+	"settings": {
+		"git.scanRepositories": ["../ncc-packages"],
+	}
 }
