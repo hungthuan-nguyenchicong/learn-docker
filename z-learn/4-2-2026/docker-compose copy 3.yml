@@ -1,0 +1,59 @@
+services:
+  # --- NHÓM 1: LARAVEL (PHP 8.3) ---
+  laravel-php:
+    image: php:8.3-fpm-alpine
+    container_name: laravel-fpm
+    volumes:
+      - ./laravel-app:/var/www/html # Giả sử code Laravel nằm trong thư mục laravel-app
+
+  laravel-web:
+    image: nginx:alpine
+    container_name: laravel-nginx
+    ports:
+      - "8000:80" # Laravel chạy cổng 8000
+    volumes:
+      - ./laravel-app:/var/www/html
+      - ./laravel-nginx.conf:/etc/nginx/conf.d/default.conf:ro
+    depends_on:
+      - laravel-php
+
+  # --- NHÓM 2: WORDPRESS ---
+  db-wp:
+    image: mysql:8.4-oracle
+    container_name: mysql-wp-test
+    restart: always
+    environment:
+      MYSQL_ROOT_PASSWORD: root_password
+      MYSQL_DATABASE: wordpress_db
+      MYSQL_USER: wp_admin
+      MYSQL_PASSWORD: wp_password
+    volumes:
+      - db_storage:/var/lib/mysql
+
+  wordpress:
+    image: wordpress:fpm-alpine
+    container_name: wp-app-test
+    user: "1000:1000"
+    environment:
+      WORDPRESS_DB_HOST: db-wp
+      WORDPRESS_DB_USER: wp_admin
+      WORDPRESS_DB_PASSWORD: wp_password
+      WORDPRESS_DB_NAME: wordpress_db
+    volumes:
+      - ./wp-data:/var/www/html
+    depends_on:
+      - db-wp
+
+  nginx-wp:
+    image: nginx:alpine
+    container_name: nginx-wp-test
+    ports:
+      - "8080:80" # WordPress chạy cổng 8080
+    volumes:
+      - ./wp-data:/var/www/html
+      - ./wp-nginx.conf:/etc/nginx/conf.d/default.conf:ro
+    depends_on:
+      - wordpress
+
+volumes:
+  db_storage:

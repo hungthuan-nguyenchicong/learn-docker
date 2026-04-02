@@ -1,0 +1,82 @@
+services:
+  # --- DATABASE CHUNG (Tiết kiệm tài nguyên) ---
+  db-shared:
+    image: mysql:8.4-oracle
+    container_name: mysql-shared
+    restart: always
+    healthcheck:
+      test:
+        [
+          "CMD",
+          "mysqladmin",
+          "ping",
+          "-h",
+          "localhost",
+          "-uwp_admin",
+          "-pwp_password",
+        ]
+      timeout: 5s
+      retries: 5
+    environment:
+      MYSQL_ROOT_PASSWORD: root_password
+      MYSQL_DATABASE: wordpress_db # Khởi tạo sẵn DB cho WP
+      MYSQL_USER: wp_admin
+      MYSQL_PASSWORD: wp_password
+    volumes:
+      - db_storage:/var/lib/mysql
+
+  # --- NHÓM 1: LARAVEL (PHP 8.3) ---
+  laravel-php:
+    image: php:8.3-fpm-alpine
+    container_name: laravel-fpm
+    user: "1000:1000"
+    volumes:
+      - ./laravel-app:/var/www/html
+      - ./shared-uploads:/var/www/html/public/uploads
+    depends_on:
+      db-shared:
+        condition: service_healthy
+
+  laravel-web:
+    image: nginx:alpine
+    container_name: laravel-nginx
+    ports:
+      - "8000:80"
+    volumes:
+      - ./laravel-app:/var/www/html
+      - ./shared-uploads:/var/www/html/public/uploads:ro
+      - ./laravel-nginx.conf:/etc/nginx/conf.d/default.conf:ro
+    depends_on:
+      - laravel-php
+
+  # --- NHÓM 2: WORDPRESS ---
+  wordpress:
+    image: wordpress:fpm-alpine
+    container_name: wp-app-test
+    user: "1000:1000"
+    environment:
+      WORDPRESS_DB_HOST: db-shared # Trỏ về database chung
+      WORDPRESS_DB_USER: wp_admin
+      WORDPRESS_DB_PASSWORD: wp_password
+      WORDPRESS_DB_NAME: wordpress_db
+    volumes:
+      - ./wp-data:/var/www/html
+      - ./shared-uploads:/var/www/html/wp-content/uploads
+    depends_on:
+      db-shared:
+        condition: service_healthy
+
+  nginx-wp:
+    image: nginx:alpine
+    container_name: nginx-wp-test
+    ports:
+      - "8080:80"
+    volumes:
+      - ./wp-data:/var/www/html
+      - ./shared-uploads:/var/www/html/wp-content/uploads:ro
+      - ./wp-nginx.conf:/etc/nginx/conf.d/default.conf:ro
+    depends_on:
+      - wordpress
+
+volumes:
+  db_storage:

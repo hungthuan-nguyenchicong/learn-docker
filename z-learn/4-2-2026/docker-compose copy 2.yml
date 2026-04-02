@@ -1,0 +1,43 @@
+services:
+  # Database: MySQL 8.4 Oracle (LTS)
+  db-wp:
+    image: mysql:8.4-oracle
+    container_name: mysql-wp-test
+    restart: always
+    environment:
+      MYSQL_ROOT_PASSWORD: root_password
+      MYSQL_DATABASE: wordpress_db
+      MYSQL_USER: wp_admin
+      MYSQL_PASSWORD: wp_password
+    volumes:
+      - db_storage:/var/lib/mysql
+
+  # PHP Processor: WordPress FPM Alpine
+  wordpress:
+    image: wordpress:fpm-alpine
+    container_name: wp-app-test
+    user: "1000:1000" # Quan trọng: Khớp với user 'cong' để tránh lỗi ghi file
+    environment:
+      WORDPRESS_DB_HOST: db-wp
+      WORDPRESS_DB_USER: wp_admin
+      WORDPRESS_DB_PASSWORD: wp_password
+      WORDPRESS_DB_NAME: wordpress_db
+    volumes:
+      - ./wp-data:/var/www/html
+    depends_on:
+      - db-wp
+
+  # Web Server: Nginx Alpine
+  nginx-wp:
+    image: nginx:alpine
+    container_name: nginx-wp-test
+    ports:
+      - "8081:80" # Dùng port 8081 để không đụng hàng với Laravel (8080)
+    volumes:
+      - ./wp-data:/var/www/html
+      - ./default.conf:/etc/nginx/conf.d/default.conf:ro
+    depends_on:
+      - wordpress
+
+volumes:
+  db_storage:
