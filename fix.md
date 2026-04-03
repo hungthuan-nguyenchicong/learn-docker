@@ -120,3 +120,19 @@ docker compose exec laravel-php composer -v
 # Mount vào /var/ để khi từ /var/www/html lùi 2 cấp sẽ thấy nó
 
       - ~/git/ncc-packages:/var/ncc-packages
+
+docker exec -it --user www-data laravel-fpm php artisan tinker
+
+docker exec -it mysql-shared mysql -uwp_admin -pwp_password wordpress_db
+
+SELECT \* FROM wp_options WHERE option_name IN ('thumbnail_size_w', 'thumbnail_size_h', 'thumbnail_crop');
+
+SELECT \* FROM wp_options
+WHERE option_name IN (
+'medium_size_w', 'medium_size_h',
+'large_size_w', 'large_size_h'
+);
+
+UPDATE wp_options SET option_value = 0 WHERE option_name IN ('thumbnail_size_w', 'thumbnail_size_h', 'medium_size_w', 'medium_size_h', 'large_size_w', 'large_size_h');
+
+UPDATE wp_options SET option_value = 0 WHERE option_name = 'medium_large_size_w';

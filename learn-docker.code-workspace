@@ -10,7 +10,7 @@
 		},
 		{
 			"name": "PROJECT PACKAGES",
-			"path": "./laravel-app/vendor/ncc/packages"
+			"path": "./laravel-app/vendor/ncc/packages/Wp"
 		},
 	],
 	"settings": {
