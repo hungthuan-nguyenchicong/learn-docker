@@ -25,12 +25,6 @@ services:
     volumes:
       - db_storage:/var/lib/mysql
 
-  # 1. Khai báo ông thợ Composer
-  composer-bin:
-    image: composer:latest
-    volumes:
-      # Mount vào thư mục bin của composer để lấy file
-      - composer_data:/usr/bin/
   # --- NHÓM 1: LARAVEL (PHP 8.3) ---
   laravel-php:
     #image: php:8.3-fpm-alpine
@@ -41,9 +35,7 @@ services:
       - ./laravel-app:/var/www/html
       - ./shared-uploads:/var/www/html/public/uploads
       # Thêm dòng này: Mount thư mục package vào đúng vị trí tương đối
-      - ~/git/ncc-packages:/var/ncc-packages # Phải khớp với lệnh docker run ở trên
-      # Mount vào một thư mục TRUNG GIAN (không mount vào /usr/local/bin nữa)
-      - composer_data:/opt/composer-bin:ro
+      - ~/git/ncc-packages:/ncc-packages # Phải khớp với lệnh docker run ở trên
     depends_on:
       db-shared:
         condition: service_healthy
@@ -91,4 +83,3 @@ services:
 
 volumes:
   db_storage:
-  composer_data:
